@@ -1,9 +1,0 @@
-services:
-  - type: web
-    name: phishguard-ai
-    runtime: python
-    buildCommand: "pip install -r requirements.txt && python data/generate_dataset.py && python models/train_models.py"
-    startCommand: "python app.py"
-    envVars:
-      - key: PYTHON_VERSION
-        value: 3.11.0

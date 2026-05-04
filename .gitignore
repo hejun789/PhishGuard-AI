@@ -12,9 +12,9 @@ dist/
 build/
 .eggs/
 
-# Data & Models (excluded from git — regenerated at build time)
-# data/dataset.csv
-# models/*.pkl
+# Data & Models (large files)
+data/dataset.csv
+models/*.pkl
 
 # IDE
 .vscode/
