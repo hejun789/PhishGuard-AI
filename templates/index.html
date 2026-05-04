@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PhishGuard AI — Phishing URL Detector</title>
+  <link rel="stylesheet" href="/static/css/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=JetBrains+Mono:wght@300;400;600&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+  <!-- Matrix rain canvas -->
+  <canvas id="matrix-rain"></canvas>
+
+  <!-- Scan line overlay -->
+  <div class="scanlines"></div>
+
+  <div class="app-wrapper">
+
+    <!-- ═══════════════════════ HEADER ═══════════════════════ -->
+    <header class="site-header">
+      <div class="logo-row">
+        <span class="shield-icon">🛡</span>
+        <h1 class="glitch-title" data-text="PHISHGUARD AI">PHISHGUARD AI</h1>
+      </div>
+      <p class="subtitle typewriter" id="subtitle-text"></p>
+      <div class="header-tags">
+        <span class="tag">ML-Powered</span>
+        <span class="tag">Real-Time</span>
+        <span class="tag">24 Features</span>
+        <span class="tag">4 Models</span>
+      </div>
+    </header>
+
+    <!-- ═══════════════════════ MAIN CARD ══════════════════════ -->
+    <main class="main-card glass-card">
+
+      <div class="input-section">
+        <label class="input-label" for="url-input">
+          <span class="prompt">&gt;_</span> ENTER URL TO SCAN
+        </label>
+        <div class="input-row">
+          <input
+            type="text"
+            id="url-input"
+            class="url-input"
+            placeholder="https://example.com"
+            autocomplete="off"
+            spellcheck="false"
+          />
+          <button class="scan-btn" id="scan-btn" onclick="scanURL()">
+            <span class="btn-text">SCAN</span>
+            <span class="btn-icon">⟶</span>
+          </button>
+        </div>
+        <div id="input-error" class="input-error hidden"></div>
+      </div>
+
+      <!-- Loader -->
+      <div id="loader" class="loader hidden">
+        <div class="loader-bars">
+          <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+          <div class="bar"></div><div class="bar"></div>
+        </div>
+        <span class="loader-text">Analyzing URL...</span>
+      </div>
+
+      <!-- ═══ RESULT ═══ -->
+      <div id="result-section" class="result-section hidden">
+
+        <div id="result-banner" class="result-banner">
+          <div class="banner-left">
+            <span id="result-icon" class="result-icon"></span>
+            <div class="result-text-col">
+              <span id="result-verdict" class="result-verdict"></span>
+              <span id="result-url-display" class="result-url-display"></span>
+            </div>
+          </div>
+          <div class="banner-right">
+            <div class="confidence-block">
+              <span class="conf-label">CONFIDENCE</span>
+              <span id="conf-value" class="conf-value"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Confidence bar -->
+        <div class="conf-bar-wrap">
+          <div class="conf-bar-track">
+            <div id="conf-bar-fill" class="conf-bar-fill"></div>
+          </div>
+          <div class="conf-bar-labels">
+            <span>0%</span><span>50%</span><span>100%</span>
+          </div>
+        </div>
+
+        <!-- Risk score + model badge -->
+        <div class="meta-row">
+          <div class="risk-block">
+            <span class="meta-label">RISK SCORE</span>
+            <span id="risk-score" class="risk-score"></span>
+            <span class="meta-label">/ 14</span>
+          </div>
+          <div class="model-block">
+            <span class="meta-label">MODEL</span>
+            <span id="model-badge" class="model-badge"></span>
+          </div>
+        </div>
+
+        <!-- Risk factors -->
+        <div id="risk-factors-section" class="risk-factors-section">
+          <div class="section-title"><span class="prompt">&gt;</span> RISK FACTORS</div>
+          <div id="risk-factors-list" class="risk-factors-list"></div>
+        </div>
+
+        <!-- Feature details (collapsible) -->
+        <details class="features-details">
+          <summary class="features-summary">
+            <span class="prompt">&gt;</span> TECHNICAL FEATURES <span class="chevron">▼</span>
+          </summary>
+          <div id="features-grid" class="features-grid"></div>
+        </details>
+
+      </div>
+    </main>
+
+    <!-- ═══════════════════════ SAMPLE URLS ═══════════════════════ -->
+    <section class="samples-section glass-card">
+      <div class="section-title"><span class="prompt">&gt;</span> QUICK TEST SAMPLES</div>
+      <div class="samples-grid">
+
+        <div class="sample-group">
+          <div class="sample-group-label safe-label">✓ LEGITIMATE</div>
+          <button class="sample-btn safe-btn" onclick="loadSample('https://www.github.com/user/repo')">github.com/user/repo</button>
+          <button class="sample-btn safe-btn" onclick="loadSample('https://stackoverflow.com/questions/1234')">stackoverflow.com</button>
+          <button class="sample-btn safe-btn" onclick="loadSample('https://www.amazon.com/products/laptop?id=12345')">amazon.com/products</button>
+          <button class="sample-btn safe-btn" onclick="loadSample('https://docs.python.org/3/tutorial/index.html')">docs.python.org</button>
+        </div>
+
+        <div class="sample-group">
+          <div class="sample-group-label danger-label">✗ PHISHING</div>
+          <button class="sample-btn danger-btn" onclick="loadSample('http://paypal-verify-account.tk/login?token=abc123')">paypal-verify-account.tk</button>
+          <button class="sample-btn danger-btn" onclick="loadSample('http://192.168.1.1/paypal/login.php?redirect=true')">IP-based URL</button>
+          <button class="sample-btn danger-btn" onclick="loadSample('http://amazon.secure-billing-update.xyz/account/verify?session=reset')">amazon.secure-billing.xyz</button>
+          <button class="sample-btn danger-btn" onclick="loadSample('http://google.com@attacker999.com/signin?user=victim&confirm=true')">@ symbol trick</button>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ═══════════════════════ CHARTS ═══════════════════════ -->
+    <section class="charts-section glass-card">
+      <div class="section-title"><span class="prompt">&gt;</span> MODEL EVALUATION CHARTS</div>
+      <div class="charts-grid">
+        <figure class="chart-figure">
+          <img src="/static/images/model_comparison.png" alt="Model Comparison" onerror="this.parentElement.style.display='none'"/>
+          <figcaption>Model Comparison</figcaption>
+        </figure>
+        <figure class="chart-figure">
+          <img src="/static/images/roc_curves.png" alt="ROC Curves" onerror="this.parentElement.style.display='none'"/>
+          <figcaption>ROC Curves</figcaption>
+        </figure>
+        <figure class="chart-figure">
+          <img src="/static/images/confusion_matrix.png" alt="Confusion Matrix" onerror="this.parentElement.style.display='none'"/>
+          <figcaption>Confusion Matrix</figcaption>
+        </figure>
+        <figure class="chart-figure">
+          <img src="/static/images/feature_importance.png" alt="Feature Importance" onerror="this.parentElement.style.display='none'"/>
+          <figcaption>Feature Importance</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════ FOOTER ═══════════════════════ -->
+    <footer class="site-footer">
+      <p>PhishGuard AI &nbsp;|&nbsp; ML-powered phishing detection &nbsp;|&nbsp; Built with Python · scikit-learn · Flask</p>
+      <p class="footer-stack">Random Forest · Gradient Boosting · Logistic Regression · SVM &nbsp;|&nbsp; 24 URL features · 6000 samples</p>
+    </footer>
+
+  </div>
+
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
